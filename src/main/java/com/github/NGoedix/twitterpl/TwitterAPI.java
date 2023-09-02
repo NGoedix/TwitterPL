@@ -95,9 +95,37 @@ public class TwitterAPI {
 
         // Load request details (features and variables) from file
         RequestDetails requestDetails;
-        try (Reader reader = new FileReader("src/main/resources/request_details.json")) {
-            requestDetails = gson.fromJson(reader, RequestDetails.class);
-        }
+
+        String t =
+                "{\n" +
+                        "    \"features\":{\n" +
+                        "        \"creator_subscriptions_tweet_preview_api_enabled\":true,\n" +
+                        "        \"tweetypie_unmention_optimization_enabled\":true,\n" +
+                        "        \"responsive_web_edit_tweet_api_enabled\":true,\n" +
+                        "        \"graphql_is_translatable_rweb_tweet_is_translatable_enabled\":true,\n" +
+                        "        \"view_counts_everywhere_api_enabled\":true,\n" +
+                        "        \"longform_notetweets_consumption_enabled\":true,\n" +
+                        "        \"responsive_web_twitter_article_tweet_consumption_enabled\":false,\n" +
+                        "        \"tweet_awards_web_tipping_enabled\":false,\n" +
+                        "        \"freedom_of_speech_not_reach_fetch_enabled\":true,\n" +
+                        "        \"standardized_nudges_misinfo\":true,\n" +
+                        "        \"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled\":true,\n" +
+                        "        \"longform_notetweets_rich_text_read_enabled\":true,\n" +
+                        "        \"longform_notetweets_inline_media_enabled\":true,\n" +
+                        "        \"responsive_web_graphql_exclude_directive_enabled\":true,\n" +
+                        "        \"verified_phone_label_enabled\":false,\n" +
+                        "        \"responsive_web_media_download_video_enabled\":false,\n" +
+                        "        \"responsive_web_graphql_skip_user_profile_image_extensions_enabled\":false,\n" +
+                        "        \"responsive_web_graphql_timeline_navigation_enabled\":true,\n" +
+                        "        \"responsive_web_enhance_cards_enabled\":false\n" +
+                        "    },\n" +
+                        "    \"variables\": {\n" +
+                        "        \"withCommunity\":false,\n" +
+                        "        \"includePromotedContent\":false,\n" +
+                        "        \"withVoice\":true\n" +
+                        "    }\n" +
+                        "}";
+        requestDetails = gson.fromJson(t, RequestDetails.class);
 
         String url = getDetailsUrl(tweetId, requestDetails.features, requestDetails.variables);
 
@@ -137,13 +165,6 @@ public class TwitterAPI {
             url = getDetailsUrl(tweetId, requestDetails.features, requestDetails.variables);
             conn = makeGetRequest(url, bearerToken, guestToken);
             curRetry++;
-
-            if (conn.getResponseCode() == 200) {
-                // Save new variables and features
-                try (Writer writer = new FileWriter("request_details.json")) {
-                    gson.toJson(requestDetails, writer);
-                }
-            }
         }
 
         if (conn.getResponseCode() != 200) {
@@ -157,7 +178,7 @@ public class TwitterAPI {
     private String getDetailsUrl(String tweetId, Map<String, Boolean> features, Map<String, Boolean> variables) {
         // Create a copy of variables - we don't want to modify the original
         Map<String, Object> newVariables = new HashMap<>(variables);
-        newVariables.put("focalTweetId", tweetId);
+        newVariables.put("tweetId", tweetId);
 
         String variablesJson = gson.toJson(newVariables);
         String featuresJson = gson.toJson(features);
@@ -165,12 +186,13 @@ public class TwitterAPI {
         String encodedVariables = URLEncoder.encode(variablesJson, StandardCharsets.UTF_8);
         String encodedFeatures = URLEncoder.encode(featuresJson, StandardCharsets.UTF_8);
 
-        return "https://twitter.com/i/api/graphql/wTXkouwCKcMNQtY-NcDgAA/TweetDetail?variables=" + encodedVariables + "&features=" + encodedFeatures;
+        return "https://twitter.com/i/api/graphql/0hWvDhmW8YQ-S_ib3azIrw/TweetResultByRestId?variables=" + encodedVariables + "&features=" + encodedFeatures;
     }
 
     private static HttpURLConnection makeGetRequest(String url, String bearerToken, String guestToken) throws IOException {
         URL urlObj = new URL(url);
         HttpURLConnection conn = (HttpURLConnection) urlObj.openConnection();
+        System.out.println(url);
         conn.setRequestMethod("GET");
         conn.setRequestProperty("authorization", "Bearer " + bearerToken);
         conn.setRequestProperty("x-guest-token", guestToken);

@@ -4,12 +4,10 @@ import com.google.gson.Gson;
 
 public class TweetScrapper {
 
-    private final Gson gson;
     private final TwitterAPI twitterAPI;
     private final VideoExtractor videoExtractor;
 
     public TweetScrapper(Gson gson) {
-        this.gson = gson;
         this.twitterAPI = new TwitterAPI(gson);
         this.videoExtractor = new VideoExtractor();
     }
